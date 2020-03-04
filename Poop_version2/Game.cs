@@ -122,9 +122,12 @@ namespace Poop_version2
                             you.GameLose();
                         }
                     }
+                    if (p != null) p.Location = new Point(p.Location.X, p.Location.Y + 10);
+
                 }
 
             }
+            
             //todo
             /*
              * 
