@@ -10,7 +10,7 @@ namespace Poop_version2
 {
     class Player : Movable
     {
-        public int playerNum;
+        public int playerNumber;
         public Label scorelabel;
         private int score = 0;
         private bool active;
@@ -19,15 +19,14 @@ namespace Poop_version2
         
         public Player(int num, string fileName)
         {
-            playerNum = num;
+            playerNumber = num;
             active = true;
             setImage(fileName);
         }
         public void SetScore(int n)
         {
             score = n;
-            scorelabel.Text = "Player " + playerNum + " score: " + score;
-
+            scorelabel.Text = "Player " + playerNumber + " score: " + score;
         }
         public void GameLose()
         {
@@ -49,7 +48,7 @@ namespace Poop_version2
         public void SetLabel(Label label)
         {
             scorelabel = label;
-            scorelabel.Text = "Player " + playerNum + " score: " + score;
+            scorelabel.Text = "Player " + playerNumber + ": " + score;
         }
     }
 }

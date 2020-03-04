@@ -48,7 +48,7 @@ namespace Poop_version2
                     if (isNumber)
                     {
                         Console.WriteLine("54: Game info Holder: ");
-                        if (game.you.playerNum == n)
+                        if (game.you.playerNumber == n)
                         {
                             players.Add(game.you);
                         }
@@ -64,7 +64,6 @@ namespace Poop_version2
         
         public Player createPlayer(int playerNum)
         {
-            
             Player newPlayer = new Player(playerNum, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"))
             {
                 Size = new Size(playerSize, playerSize),
@@ -72,7 +71,7 @@ namespace Poop_version2
                     Boundary.startX + Boundary.windowSizeX / 2,
                     Boundary.startY + Boundary.windowSizeY - playerSize)
             };
-            newPlayer.SetLabel(game.form.GetScoreLabel(newPlayer.playerNum));
+            newPlayer.SetLabel(game.form.GetScoreLabel(newPlayer.playerNumber));
             return newPlayer;
             
         }

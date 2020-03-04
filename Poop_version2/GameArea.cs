@@ -18,15 +18,14 @@ namespace Poop_version2
         int GameAreaHeight = Boundary.windowSizeY;
         Game game;
         //GameInfoHolder
-        GameInfoHolder infoHolder;
+        //GameInfoHolder infoHolder;
         public GameArea()
         {
+            InitializeComponent();
             game = new Game(this);
             this.Height = GameAreaHeight;
             this.Width = GameAreaWidth;
-            InitializeComponent();
-
-
+            
             btnStart.Click += new System.EventHandler(StartButtonClicked);
         }
    
@@ -68,9 +67,6 @@ namespace Poop_version2
                 game.you.x = x + playerSpeed;
             }
 
-
-         
-
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
@@ -87,13 +83,19 @@ namespace Poop_version2
              * 
              */
             btnStart.Enabled = false;
+            btnStart.Text = "Waiting";
+            game.Ready();
 
         }
 
         public void EnableStartButton()
         {
-
             btnStart.Enabled = true;
+        }
+
+        public void Log(string input)
+        {
+            logBox.Items.Add(input);
         }
     }
 }

@@ -7,12 +7,15 @@ using System.Collections;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Net.WebSockets;
-
+using Microsoft.AspNet.SignalR.Client;
 
 namespace Poop_version2
 {
     class Game
     {
+        HubConnection hubConnection;
+        IHubProxy hubProxy;
+
         public Player you;
         public string status;
         public Timer gameTime;
@@ -23,16 +26,12 @@ namespace Poop_version2
         protected static int counter = 0;
         const int playerSize = 25;
 
-
-        //the length of how much the poop goes down .
+        //the length of how much the poop goes down
         public int goDown = 12;
-
-
 
         public Game(GameArea form)
         {
-
-
+            configureServer();
 
             //TODO
 
@@ -45,8 +44,7 @@ namespace Poop_version2
              * 
              * if(webSocket == null){
              *      webSocket = new WebSocket();
-             *      gameinfo = new GameInfoHolder(string stringFromBroadcastAll);
-             *      
+             *      gameinfo = new GameInfoHolder(string stringFromBroadcastAll);     
              * }
              * 
              * you = new Player(int UniqueIDFromServer, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"));
@@ -65,9 +63,9 @@ namespace Poop_version2
 
             //TODO
             ///////////////////////DELETE THIS PIECE OF CODE AFTER WE IMPLEMENT THE SERVER CODE//////////////////////////////////
-            you = CreatePlayer(0);
+            //you = CreatePlayer(1);
 
-            infoHolder = new GameInfoHolder("", this);
+            //infoHolder = new GameInfoHolder("", this);
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             //draws the bottom line
@@ -78,13 +76,10 @@ namespace Poop_version2
                 BackColor = Color.Black
             };
 
-
             platform.BringToFront();
-
         }
         private void OnGameTimeTick(object sender, EventArgs e)
         {
-
             //keeps track of how fast the poop falls
             //and how often the garbage collection is triggered.
             counter++;
@@ -138,10 +133,7 @@ namespace Poop_version2
              * you.x;
              * you.score;
              * 
-             * 
-             * 
              */
-
         }
 
         public Player CreatePlayer(int playerNum)
@@ -153,8 +145,82 @@ namespace Poop_version2
                     Boundary.startX + Boundary.windowSizeX / 2,
                     Boundary.startY + Boundary.windowSizeY - playerSize)
             };
-            newPlayer.SetLabel(form.GetScoreLabel(newPlayer.playerNum));
+            newPlayer.SetLabel(form.GetScoreLabel(newPlayer.playerNumber));
             return newPlayer;
+        }
+
+        delegate void MyLogDelegate(string text);
+
+        private void MyLog(string text)
+        {
+            if (this.form.InvokeRequired)
+            {
+                MyLogDelegate t = new MyLogDelegate(MyLog);
+                this.form.Invoke(t, text);
+            }
+            else
+            {
+                form.Log(text);
+            }   
+        }
+
+        delegate void NewPlayerDelegate(int playerNumber);
+
+        private void NewPlayer(int playerNumber)
+        {
+            if (this.form.InvokeRequired)
+            {
+                NewPlayerDelegate t = new NewPlayerDelegate(NewPlayer);
+                this.form.Invoke(t, playerNumber);
+            }
+            else
+            {
+                you = new Player(playerNumber, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"));
+            }
+        }
+
+
+        private async void configureServer()
+        {
+            using (hubConnection = new HubConnection("https://signalrwebserver20200303060919.azurewebsites.net/"))
+            {
+                hubProxy = hubConnection.CreateHubProxy("PoopHub");
+                hubProxy.On<int>("AssignPlayerNumber", (playerNumber) =>
+                {
+                    MyLog("Player number is assigned: " + playerNumber.ToString());
+                    NewPlayer(playerNumber);
+                });
+                hubProxy.On("GameStartAtServer", () =>
+                {
+                    MyLog("game is started at the server");
+                });
+                await ConnectServerAsync();
+            }
+        }
+
+        private async Task ConnectServerAsync()
+        {
+            try
+            {
+                await hubConnection.Start();
+                await hubProxy.Invoke("ConnectClient");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async void Ready()
+        {
+            try
+            {
+                await hubProxy.Invoke("Ready", you.playerNumber);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
