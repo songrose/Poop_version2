@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace Poop_version2
 {
-    class Movable
+    public class Movable
     {
 
         public PictureBox pictureBox;
@@ -27,9 +27,22 @@ namespace Poop_version2
             set
             {
                 if (value.Height > 0 && value.Width > 0)
-                    pictureBox.Size = value;
+                    //pictureBox.Size = value;
+                    SizeThread(value);
             }
         }
+        private void SizeThread(Size value)
+        {
+            if (mainForm.InvokeRequired)
+            {
+                mainForm.BeginInvoke(new Action(() => pictureBox.Size = value));
+            }
+            else
+            {
+                pictureBox.Size = value;
+            }
+        }
+
         public Rectangle Bounds
         {
             get { return pictureBox.Bounds; }
@@ -37,7 +50,18 @@ namespace Poop_version2
         public Point Location
         {
             get { return pictureBox.Location; }
-            set { pictureBox.Location = value; }
+            set { LocationThread(value); }
+        }
+        private void LocationThread(Point value)
+        {
+            if (mainForm.InvokeRequired)
+            {
+                mainForm.BeginInvoke(new Action(() => pictureBox.Location = value));
+            }
+            else
+            {
+                pictureBox.Location = value;
+            }
         }
         public Color BackColor
         {
@@ -51,9 +75,22 @@ namespace Poop_version2
         }
         public Movable()
         {
-            pictureBox = new PictureBox();
-            mainForm.Controls.Add(pictureBox);
+            pictureBox = new PictureBox();            
+            MovavleThread(pictureBox);
         }
+
+        private void MovavleThread(PictureBox pictureBox)
+        {
+            if (mainForm.InvokeRequired)
+            {
+                mainForm.BeginInvoke(new Action(() => mainForm.Controls.Add(pictureBox)));
+            }
+            else
+            {
+                mainForm.Controls.Add(pictureBox);
+            }
+        }
+
         public Movable(Form form)
         {
             pictureBox = new PictureBox();
@@ -65,9 +102,19 @@ namespace Poop_version2
         }
         public void Remove()
         {
-            mainForm.Controls.Remove(pictureBox);
+            RemoveThread();
         }
 
+        private void RemoveThread()
+        {
+            if (mainForm.InvokeRequired)
+            {
+                mainForm.BeginInvoke(new Action(() => mainForm.Controls.Remove(pictureBox)));
+            }
+            else
+            {
+                mainForm.Controls.Remove(pictureBox);
+            }
+        }
     }
-
 }

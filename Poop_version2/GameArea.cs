@@ -10,8 +10,6 @@ using System.Windows.Forms;
 
 namespace Poop_version2
 {
-
-
     public partial class GameArea : Form
     {
         int GameAreaWidth = Boundary.windowSizeX;
@@ -52,19 +50,19 @@ namespace Poop_version2
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            int x = game.you.Location.X;
-            int playerSpeed = 25;
+            int x = game.GetPlayer(game.you).Location.X;
+            int playerSpeed = 15;
 
-            if (game.you.GetActive() && keyData == Keys.Left && x - 25 >= Boundary.startX)
+            if (game.GetPlayer(game.you).GetAlive() && keyData == Keys.Left && x - 25 >= Boundary.startX)
             {
-                //  game.you.Location = new Point(x - playerSpeed, game.you.Location.Y);
-                game.you.x = x - playerSpeed;
+                //game.you.Location = new Point(x - playerSpeed, game.you.Location.Y);
+                game.PlayerMove(x - playerSpeed);
             
             }
-            else if (game.you.GetActive() && keyData == Keys.Right && x + playerSpeed < (Boundary.endX))
+            else if (game.GetPlayer(game.you).GetAlive() && keyData == Keys.Right && x + playerSpeed < (Boundary.endX))
             {
-               // game.you.Location = new Point(x + playerSpeed, game.you.Location.Y);
-                game.you.x = x + playerSpeed;
+                //game.you.Location = new Point(x + playerSpeed, game.you.Location.Y);
+                game.PlayerMove(x + playerSpeed);
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -85,7 +83,6 @@ namespace Poop_version2
             btnStart.Enabled = false;
             btnStart.Text = "Waiting";
             game.Ready();
-
         }
 
         public void EnableStartButton()
@@ -95,7 +92,7 @@ namespace Poop_version2
 
         public void Log(string input)
         {
-            logBox.Items.Add(input);
+            //logBox.Items.Add(input);
         }
     }
 }

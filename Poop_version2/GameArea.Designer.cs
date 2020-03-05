@@ -33,7 +33,6 @@
             this.btnStart = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.logBox = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // label1
@@ -82,21 +81,11 @@
             this.label4.TabIndex = 5;
             this.label4.Text = "Player 4";
             // 
-            // listBox1
-            // 
-            this.logBox.FormattingEnabled = true;
-            this.logBox.ItemHeight = 20;
-            this.logBox.Location = new System.Drawing.Point(831, 42);
-            this.logBox.Name = "logBox";
-            this.logBox.Size = new System.Drawing.Size(374, 324);
-            this.logBox.TabIndex = 6;
-            // 
             // GameArea
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(900, 875);
-            this.Controls.Add(this.logBox);
+            this.ClientSize = new System.Drawing.Size(1461, 875);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.btnStart);
@@ -108,16 +97,15 @@
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.GameArea_Paint);
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         #endregion
-
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ListBox logBox;
     }
 }
 

@@ -3,71 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Net.WebSockets;
 using Microsoft.AspNet.SignalR.Client;
+using Newtonsoft.Json;
 
 namespace Poop_version2
 {
-    class Game
+    public class Game
     {
         HubConnection hubConnection;
         IHubProxy hubProxy;
 
-        public Player you;
+        public int you;
         public string status;
-        public Timer gameTime;
+        public bool active;
+        public List<Player> players = new List<Player>();
+        public List<Poop> poops = new List<Poop>();
+        public Timer gameTime;        
         public GameArea form;
         public Movable platform;
         public GameInfoHolder infoHolder;
         //use to keep track of garbage collection to manually trigger garbage collection.
         protected static int counter = 0;
-        const int playerSize = 25;
+        const int playerSize = 20;
 
         //the length of how much the poop goes down
         public int goDown = 12;
 
         public Game(GameArea form)
         {
-            configureServer();
+            configureConnection();
+             
+            // you = new Player(int UniqueIDFromServer, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"));
 
-            //TODO
-
-            /////////////////////////////////////////////////////////
-
-            /**
-             * 
-             * Client connects to server in this piece of code please
-             * PSEUDO CODE INVOLVING THE SERVER
-             * 
-             * if(webSocket == null){
-             *      webSocket = new WebSocket();
-             *      gameinfo = new GameInfoHolder(string stringFromBroadcastAll);     
-             * }
-             * 
-             * you = new Player(int UniqueIDFromServer, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"));
-             * 
-             * 
-             */
-            gameTime = new Timer
-            {
-                //Enabled = true,
-                Interval = 5
-            };
-            gameTime.Tick += new EventHandler(OnGameTimeTick);
             this.form = form;
             Movable.mainForm = form;
-
-
-            //TODO
-            ///////////////////////DELETE THIS PIECE OF CODE AFTER WE IMPLEMENT THE SERVER CODE//////////////////////////////////
-            //you = CreatePlayer(1);
-
-            //infoHolder = new GameInfoHolder("", this);
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+            
             //draws the bottom line
             platform = new Movable
             {
@@ -78,63 +50,60 @@ namespace Poop_version2
 
             platform.BringToFront();
         }
-        private void OnGameTimeTick(object sender, EventArgs e)
+        
+        public void Render(GameInfoHolder gameInfo)
         {
-            //keeps track of how fast the poop falls
-            //and how often the garbage collection is triggered.
-            counter++;
-            if (counter == 100)
-            {
-                if (goDown < 1000)
-                {
-                    goDown += 1;
+            List<Player> newPlayers = gameInfo.players;
 
+            // if old poop does not exist in new poop, remove it
+            foreach (Player player in players)
+            {
+                if (!newPlayers.Exists(x => x.playerNumber.Equals(player.playerNumber)))
+                {
+                    player.Remove();
                 }
-                System.GC.Collect();
-                counter = 0;
             }
 
-            //following code triggered every 5 clicks
-
-            if((counter % 2) == 0)
+            foreach (Player player in newPlayers)
             {
-
-                int checkBottom = Boundary.endY - 70;
-                foreach (Poop p in infoHolder.poops.ToArray())
+                // if there is a poop with same id, update location
+                if (players.Find(x => x.playerNumber.Equals(player.playerNumber)) != null)
                 {
-
-                    if (p.Location.Y > checkBottom)
-                    {
-                        //poop checking for if it hits the ground
-                        if (p.Bounds.IntersectsWith(platform.Bounds))
-                        {
-                            infoHolder.poops.Remove(p);
-                            p.Remove();
-                            you.SetScore(Score.score++);
-
-
-                        }
-                        if (you.GetActive() && p != null && p.Bounds.IntersectsWith(you.Bounds))
-                        {
-                            you.SetScore(Score.score);
-                            infoHolder.poops.Remove(p);
-                            p.Remove();
-                            you.GameLose();
-                        }
-                    }
+                    players.Find(x => x.playerNumber.Equals(player.playerNumber)).Location = new Point(player.x, player.y);
                 }
-
+                // if it is a brandnew poop, create new poop
+                else
+                {
+                    players.Add(CreatePlayer(player.playerNumber));
+                }
             }
-            //todo
-            /*
-             * 
-             * Send server information of the player
-             * send 
-             * you.x;
-             * you.score;
-             * 
-             */
-        }
+
+
+            List<Poop> newPoops = gameInfo.poops;            
+
+            // if old poop does not exist in new poop, remove it
+            foreach (Poop poop in poops)
+            {
+                if (!newPoops.Exists(x => x.id.Equals(poop.id)))
+                {
+                    poop.Remove();
+                }
+            }
+
+            foreach (Poop poop in newPoops)
+            {                
+                // if there is a poop with same id, update location
+                if (poops.Find(x => x.id.Equals(poop.id)) != null)
+                {
+                    poops.Find(x => x.id.Equals(poop.id)).Location = new Point(poop.x, poop.y);
+                }
+                // if it is a brandnew poop, create new poop
+                else
+                {                    
+                    poops.Add(new Poop(poop.id, poop.x, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\poop.png")));
+                }
+            }
+        }        
 
         public Player CreatePlayer(int playerNum)
         {
@@ -144,9 +113,23 @@ namespace Poop_version2
                 Location = new Point(
                     Boundary.startX + Boundary.windowSizeX / 2,
                     Boundary.startY + Boundary.windowSizeY - playerSize)
-            };
-            newPlayer.SetLabel(form.GetScoreLabel(newPlayer.playerNumber));
+            };            
             return newPlayer;
+        }
+
+        internal List<Player> GetPlayers()
+        {
+            return players;
+        }
+
+        public Player GetPlayer(int index)
+        {
+            return players.Find(x => x.playerNumber.Equals(index));
+        }
+
+        internal List<Poop> GetPoops()
+        {
+            return poops;
         }
 
         delegate void MyLogDelegate(string text);
@@ -175,27 +158,48 @@ namespace Poop_version2
             }
             else
             {
-                you = new Player(playerNumber, System.IO.Path.Combine(Application.StartupPath, @"..\..\Images\nerd.png"));
+                players.Add(CreatePlayer(playerNumber));
+                you = playerNumber;
             }
         }
 
-
-        private async void configureServer()
+        private GameInfoHolder RestoreGameInfoHolder(string jsonObject)
         {
-            using (hubConnection = new HubConnection("https://signalrwebserver20200303060919.azurewebsites.net/"))
+            GameInfoHolder result = null;
+            if (this.form.InvokeRequired)
             {
-                hubProxy = hubConnection.CreateHubProxy("PoopHub");
-                hubProxy.On<int>("AssignPlayerNumber", (playerNumber) =>
-                {
-                    MyLog("Player number is assigned: " + playerNumber.ToString());
-                    NewPlayer(playerNumber);
-                });
-                hubProxy.On("GameStartAtServer", () =>
-                {
-                    MyLog("game is started at the server");
-                });
-                await ConnectServerAsync();
+                this.form.BeginInvoke(new Action(() => result = JsonConvert.DeserializeObject<GameInfoHolder>(jsonObject)));
             }
+            else
+            {
+                result = JsonConvert.DeserializeObject<GameInfoHolder>(jsonObject);
+            }
+            return result;
+        }
+
+        private async void configureConnection()
+        {                                    
+            hubConnection = new HubConnection("https://signalrwebserver20200303060919.azurewebsites.net");
+            hubProxy = hubConnection.CreateHubProxy("PoopHub");
+            hubProxy.On<int>("AssignPlayerNumber", (playerNumber) =>
+            {
+                MyLog("Player number is assigned: " + playerNumber.ToString());
+                NewPlayer(playerNumber);
+            });
+            hubProxy.On("GameStartAtServer", () =>
+            {
+                MyLog("game is started at the server");
+            });
+            hubProxy.On<string>("debuggingMessage", (msg) =>
+            {
+                MyLog(msg + " from server recieved.");
+            });
+            hubProxy.On<string>("Update", (jsonObject) =>
+            {                                
+                Console.WriteLine(jsonObject);
+                Render(JsonConvert.DeserializeObject<GameInfoHolder>(jsonObject));
+            });
+            await ConnectServerAsync();
         }
 
         private async Task ConnectServerAsync()
@@ -214,8 +218,20 @@ namespace Poop_version2
         public async void Ready()
         {
             try
+            {             
+                await hubProxy.Invoke("Ready", 0);
+            }
+            catch (Exception ex)
             {
-                await hubProxy.Invoke("Ready", you.playerNumber);
+                throw ex;
+            }
+        }
+
+        public async void PlayerMove(int x)
+        {
+            try
+            {                
+                await hubProxy.Invoke("PlayerMove", you, x);
             }
             catch (Exception ex)
             {

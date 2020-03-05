@@ -5,16 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
+using Newtonsoft.Json;
 
 namespace Poop_version2
 {
-    class Poop : Movable
+    public class Poop : Movable
     {
-        public Poop(int randomNumber, String fileName)
-        {
+        public string id { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
 
-            Random random = new Random();
-          //  int randomNumber = random.Next(Boundary.startX, Boundary.endX - 20);
+        public Poop(string id, int randomNumber, String fileName)
+        {
+            this.id = id;
             this.Size = new Size(20, 20);
             this.Location = new Point(randomNumber, Boundary.startY);
             this.BackColor = Color.Transparent;
@@ -26,9 +29,16 @@ namespace Poop_version2
         {
             this.Size = new Size(20, 20);
             this.Location = location;
-
             this.BackColor = Color.Transparent;
             setImage(fileName);
+        }
+
+        [JsonConstructor]
+        public Poop(string id, int x, int y)
+        {
+            this.id = id;
+            this.x = x;
+            this.y = y;
         }
     }
 }
